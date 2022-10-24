@@ -27,7 +27,6 @@ function App() {
             const signer = provider.getSigner();
             const address = await signer.getAddress();
             setMyAddress(address);
-
             const network = await provider.getNetwork();
             setChainId(network.chainId);
         } catch (e: any) {
@@ -37,21 +36,18 @@ function App() {
 
     async function onSignIn() {
         const msg = await signInWithEthereum();
-        setSignedToken(msg);
+        setSignedToken(JSON.stringify(msg));
     }
 
     return (
         <Container>
             <Row>
                 <Col
-                    xs={12}
-                    md={12}
                     style={{
                         display: "flex",
-                        width: "100%",
-                        maxWidth: "60%",
                         margin: "0 auto",
                         justifyContent: "center",
+                        textAlign: "center",
                     }}
                     className="m-4"
                 >
@@ -101,7 +97,11 @@ function App() {
                         </Button>
                     </>
                 )}
-                {signedToken && <QRCodeSVG value={signedToken} />}
+            </Row>
+            <Row style={{ justifyContent: "center", display: "flex" }}>
+                {signedToken && (
+                    <QRCodeSVG value={signedToken} style={{ width: "420px", height: "420px" }} />
+                )}
             </Row>
         </Container>
     );
