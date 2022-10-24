@@ -3,5 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "author": "SeungJu Lee <me@sjlee.me>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+  }
 }
