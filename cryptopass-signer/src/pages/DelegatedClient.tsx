@@ -1,8 +1,8 @@
 import localforage from "localforage";
 import { QRCodeSVG } from "qrcode.react";
 import React, { useEffect, useState } from "react";
-import { Button, Container, Row } from "react-bootstrap";
 import { ErrorTypes, SiweMessage } from "siwe";
+import Button from "../components/Button";
 import { verify } from "../eth/swie";
 // eslint-disable-next-line
 const QrReader = require("react-qr-reader");
@@ -56,6 +56,17 @@ export default function DelegatedClient() {
         setIsImporting(true);
     };
 
+    const onRemoveQRCode = () => {
+        localforage
+            .removeItem(STORAGE_KEY)
+            .then(() => {
+                setData("");
+                setParsedMsg(undefined);
+                setIsImporting(false);
+            })
+            .catch((e) => setErrMsg(e.message));
+    };
+
     useEffect(() => {
         localforage
             .getItem(STORAGE_KEY)
@@ -64,42 +75,102 @@ export default function DelegatedClient() {
     });
 
     return (
-        <Container>
-            <Row
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    textAlign: "center",
-                    marginTop: "1rem",
-                }}
-            >
-                <h2>View ERC-4361 Authentication Token</h2>
-            </Row>
-            {!isImporting && !data && (
-                <Row style={{ justifyContent: "center", display: "flex" }}>
-                    <h5>There is no saved auth token. Please import it by scanning the qr code.</h5>
-                    <Button variant="primary" size="lg" onClick={onImporting}>
-                        Import
-                    </Button>
-                </Row>
-            )}
-            {isImporting && !data && (
-                <Row style={{ justifyContent: "center", display: "flex" }}>
-                    <QrReader
-                        facingMode="environment"
-                        delay={500}
-                        onError={handleError}
-                        onScan={handleScan}
-                        // chooseDeviceId={() => "environment"}
-                        style={{ width: "420px", height: "420px" }}
-                    />
-                </Row>
-            )}
-            {data && (
-                <Row style={{ justifyContent: "center", display: "flex" }}>
-                    <QRCodeSVG value={data} style={{ width: "420px", height: "420px" }} />
-                </Row>
-            )}
-        </Container>
+        <div className="bg-gradient-to-b from-pink-100 to-purple-200 h-screen">
+            <div className="container m-auto px-6 py-20 md:px-12 lg:px-20">
+                {/* <div className="m-auto text-center lg:w-8/12 xl:w-7/12">
+                    <h2 className="text-2xl text-pink-900 font-bold md:text-4xl">
+                        A Tailus Blocks subscription gives you access to our components and more.
+                    </h2>
+                </div> */}
+                <div className="mt-12 m-auto -space-y-4 items-center justify-center md:flex md:space-y-0 md:-space-x-4 xl:w-10/12">
+                    <div className="relative z-10 -mx-4 group md:w-6/12 md:mx-0 lg:w-5/12">
+                        <div
+                            aria-hidden="true"
+                            className="absolute top-0 w-full h-full rounded-2xl bg-white shadow-xl"
+                        />
+                        <div className="relative p-6 space-y-6 lg:p-8">
+                            <h3 className="text-3xl text-gray-700 font-semibold text-center">
+                                View{" "}
+                                <a
+                                    rel="noopener"
+                                    target="_blank"
+                                    href="https://eips.ethereum.org/EIPS/eip-4361"
+                                    className="text-purple-500 hover:text-purple-300"
+                                >
+                                    ERC-4361
+                                </a>{" "}
+                                Authentication Token
+                            </h3>
+                            {!isImporting && !data && (
+                                <>
+                                    <div className="flex space-x-2">
+                                        <p className="flex items-center align-middle mr-2 text-3xl">
+                                            😢
+                                        </p>
+                                        <span>
+                                            There is no saved auth token. Please import it by
+                                            scanning the qr code from{" "}
+                                            <span className="font-bold">{`${window.location.origin}/issue`}</span>
+                                            .
+                                        </span>
+                                    </div>
+                                    <Button onClick={onImporting} label="Import" />
+                                </>
+                            )}
+                            {isImporting && !data && (
+                                <div>
+                                    <QrReader
+                                        facingMode="environment"
+                                        delay={500}
+                                        onError={handleError}
+                                        onScan={handleScan}
+                                    />
+                                    <p className="text-red-600">{errMsg}</p>
+                                </div>
+                            )}
+                            {isImporting && errMsg && <p className="text-red-600">{errMsg}</p>}
+                            {data && parsedMsg && (
+                                <div>
+                                    <QRCodeSVG
+                                        value={data}
+                                        style={{ height: "256px" }}
+                                        className="w-full my-4"
+                                    />
+                                    <div className="w-full flex justify-center">
+                                        <div className="w-1/2">
+                                            <Button isRed label="Remove" onClick={onRemoveQRCode} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="flex flex-col mb-4">
+                                            <h6 className="font-bold mb-2 ">Account</h6>
+                                            <span className="truncate">{parsedMsg.address}</span>
+                                        </div>
+                                        <div className="flex flex-col mb-4">
+                                            <h6 className="font-bold mb-2">Expires in</h6>
+                                            {parsedMsg.expirationTime
+                                                ? parsedMsg.expirationTime
+                                                : "Never"}
+                                        </div>
+                                        <div className="flex flex-col mb-4">
+                                            <h6 className="font-bold mb-2">Chain Id</h6>
+                                            {parsedMsg.chainId}
+                                        </div>
+                                        <div className="flex flex-col mb-4">
+                                            <h6 className="font-bold mb-2">Issuer</h6>
+                                            {parsedMsg.domain}
+                                        </div>
+                                        <div className="flex flex-col mb-4">
+                                            <h6 className="font-bold mb-2">Statement</h6>
+                                            {parsedMsg.statement}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

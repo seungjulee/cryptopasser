@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { QRCodeSVG } from "qrcode.react";
 import React, { useState } from "react";
+import Button from "../components/Button";
 import { signInWithEthereum } from "../eth/swie";
 
 declare let window: any;
@@ -9,25 +10,6 @@ const MINUTE = 60;
 const HOUR = MINUTE * 60;
 const DAY = 24 * HOUR;
 const DEFAULT_EXPIRATION_DURATION = 7 * DAY;
-
-interface ButtonProps {
-    onClick: () => void;
-    label: string;
-}
-
-function Button(props: ButtonProps) {
-    const { label, onClick } = props;
-
-    return (
-        <button
-            onClick={onClick}
-            type="button"
-            className="block w-full py-3 px-6 text-center rounded-xl transition bg-purple-600 hover:bg-purple-700 active:bg-purple-800 focus:bg-indigo-600"
-        >
-            <span className="text-white font-semibold">{label}</span>
-        </button>
-    );
-}
 
 interface ToggleButtonProps {
     onClick: () => void;
@@ -206,7 +188,8 @@ export default function Issue() {
                                         <p className="text-gray-700">
                                             From another device, please go to{" "}
                                             <span className="font-bold">{`${window.location.origin}/view`}</span>{" "}
-                                            to save the QR code on your device.
+                                            and scan the QR code to save the QR code onto your
+                                            device.
                                         </p>
                                     </div>
                                 </div>
