@@ -8,7 +8,7 @@ window.Buffer = Buffer;
 
 declare let window: any;
 
-function createSiweMessage(address: string, statement: string) {
+function createSiweMessage(address: string, statement: string, chainId?: number, expirationDuration?: number) {
   console.log(address, statement)
   const {host} = window.location;
   const {origin} = window.location;
@@ -20,7 +20,8 @@ function createSiweMessage(address: string, statement: string) {
         statement,
         uri: origin,
         version: '1',
-        chainId: 1,
+        ...(chainId ? {chainId} : {}),
+        ...(expirationDuration ? {expirationTime: new Date(Date.now() + expirationDuration * 1000).toISOString()} : {})
         // /**ISO 8601 datetime string that, if present, indicates when the signed
         //  * authentication message is no longer valid. */
         // expirationTime?: string;
@@ -33,13 +34,15 @@ interface SignedMessage {
   sig: string;
 }
 
-export async function signInWithEthereum(): Promise<SignedMessage> {
+export async function signInWithEthereum(chainId?: number, expirationDuration?: number): Promise<SignedMessage> {
   const {host: domain, origin} = window.location.host;
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   const msg = createSiweMessage(
       await signer.getAddress(),
-      'Sign in with Ethereum to the app.'
+      'Sign in with Ethereum to the app.',
+      chainId,
+      expirationDuration,
   );
   let sig: string;
   try {
@@ -51,8 +54,7 @@ export async function signInWithEthereum(): Promise<SignedMessage> {
   return { msg, sig };
 }
 
-export async function verify(signedMsgString: string) {
-
+export async function verify(signedMsgString: string): Promise<SiweMessage> {
   const signedMsg = JSON.parse(signedMsgString);
   console.log(signedMsg.msg)
   const message = new SiweMessage(signedMsg.msg);

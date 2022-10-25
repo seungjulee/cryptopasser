@@ -29,7 +29,8 @@ module.exports = {
     "jsx-a11y/label-has-associated-control": 0,
     "react/jsx-no-bind": [1, {
       "allowFunctions": true,
-    }]
+    }],
+    "react/jsx-no-target-blank": 0
   },
   settings: {
     "import/resolver": {

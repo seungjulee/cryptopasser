@@ -1,7 +1,7 @@
 import localforage from "localforage";
 import { QRCodeSVG } from "qrcode.react";
 import React, { useEffect, useState } from "react";
-import { Button, Col, Container, Row } from "react-bootstrap";
+import { Button, Container, Row } from "react-bootstrap";
 import { ErrorTypes, SiweMessage } from "siwe";
 import { verify } from "../eth/swie";
 // eslint-disable-next-line
@@ -65,19 +65,15 @@ export default function DelegatedClient() {
 
     return (
         <Container>
-            <Row>
-                <Col
-                    style={{
-                        display: "flex",
-                        width: "100%",
-                        margin: "0 auto",
-                        justifyContent: "center",
-                        textAlign: "center",
-                    }}
-                    className="m-4"
-                >
-                    <h2>View ERC-4361 Authentication Token</h2>
-                </Col>
+            <Row
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    marginTop: "1rem",
+                }}
+            >
+                <h2>View ERC-4361 Authentication Token</h2>
             </Row>
             {!isImporting && !data && (
                 <Row style={{ justifyContent: "center", display: "flex" }}>
