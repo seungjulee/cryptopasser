@@ -3,7 +3,9 @@ import { QRCodeSVG } from "qrcode.react";
 import React, { useEffect, useState } from "react";
 import { ErrorTypes, SiweMessage } from "siwe";
 import Button from "../components/Button";
+import { EMPTY_ENS_PROFILE, ENSProfile, getENSProfile } from "../eth/ens";
 import { verify } from "../eth/swie";
+
 // eslint-disable-next-line
 const QrReader = require("react-qr-reader");
 
@@ -14,39 +16,47 @@ export default function DelegatedClient() {
     const [isImporting, setIsImporting] = useState(false);
     const [errMsg, setErrMsg] = useState("");
     const [parsedMsg, setParsedMsg] = useState<SiweMessage>();
+    const [hasLocalData, setHasLocalData] = useState(false);
+    const [ensProfile, setENSProfile] = useState<ENSProfile>(EMPTY_ENS_PROFILE);
+    const [isLoading, setIsLoading] = useState(true);
 
     const handleScan = async (scanData: string) => {
         console.log(`loaded data data`, scanData);
-        if (scanData && scanData !== "") {
-            setData(scanData);
+        if (!scanData || scanData === "") return;
+        setData(scanData);
+        parseData(scanData);
 
-            try {
-                const parsed = await verify(scanData);
-                setParsedMsg(parsed);
-            } catch (e: any) {
-                switch (e) {
-                    case ErrorTypes.EXPIRED_MESSAGE: {
-                        setErrMsg(e.message);
-                        break;
-                    }
-                    case ErrorTypes.INVALID_SIGNATURE: {
-                        setErrMsg(e.message);
-                        break;
-                    }
-                    default: {
-                        setErrMsg(e.message);
-                        break;
-                    }
+        try {
+            await localforage.setItem(STORAGE_KEY, scanData);
+        } catch (e: any) {
+            setErrMsg("failed to save the item");
+        }
+    };
+
+    const parseData = async (scanData: string) => {
+        try {
+            const parsed = await verify(scanData);
+            setParsedMsg(parsed);
+            const ens = await getENSProfile(parsed.address);
+            setENSProfile(ens);
+        } catch (e: any) {
+            switch (e) {
+                case ErrorTypes.EXPIRED_MESSAGE: {
+                    setErrMsg(e.message);
+                    break;
                 }
-            }
-
-            try {
-                await localforage.setItem(STORAGE_KEY, scanData);
-            } catch (e: any) {
-                setErrMsg("failed to save the item");
+                case ErrorTypes.INVALID_SIGNATURE: {
+                    setErrMsg(e.message);
+                    break;
+                }
+                default: {
+                    setErrMsg(e.message);
+                    break;
+                }
             }
         }
     };
+
     const handleError = (err: Error) => {
         // window.alert(err);
     };
@@ -68,9 +78,18 @@ export default function DelegatedClient() {
     };
 
     useEffect(() => {
+        if (data || parsedMsg) {
+            setIsLoading(false);
+            return;
+        }
+
         localforage
             .getItem(STORAGE_KEY)
-            .then((d) => setData(d as string))
+            .then((d) => {
+                setData(d as string);
+                parseData(d as string);
+                setIsLoading(false);
+            })
             .catch((e) => setErrMsg(e.message));
     });
 
@@ -101,7 +120,7 @@ export default function DelegatedClient() {
                                 </a>{" "}
                                 Authentication Token
                             </h3>
-                            {!isImporting && !data && (
+                            {!isImporting && !data && !isLoading && (
                                 <>
                                     <div className="flex space-x-2">
                                         <p className="flex items-center align-middle mr-2 text-3xl">
@@ -136,7 +155,7 @@ export default function DelegatedClient() {
                                         style={{ height: "256px" }}
                                         className="w-full my-4"
                                     />
-                                    <div className="w-full flex justify-center">
+                                    <div className="w-full flex justify-center mb-4">
                                         <div className="w-1/2">
                                             <Button isRed label="Remove" onClick={onRemoveQRCode} />
                                         </div>
@@ -145,6 +164,9 @@ export default function DelegatedClient() {
                                         <div className="flex flex-col mb-4">
                                             <h6 className="font-bold mb-2 ">Account</h6>
                                             <span className="truncate">{parsedMsg.address}</span>
+                                            {ensProfile.name && (
+                                                <span className="truncate">{ensProfile.name}</span>
+                                            )}
                                         </div>
                                         <div className="flex flex-col mb-4">
                                             <h6 className="font-bold mb-2">Expires in</h6>

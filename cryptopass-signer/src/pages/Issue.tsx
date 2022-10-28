@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { QRCodeSVG } from "qrcode.react";
 import React, { useState } from "react";
 import Button from "../components/Button";
+import { EMPTY_ENS_PROFILE, ENSProfile, getENSProfile } from "../eth/ens";
 import { signInWithEthereum } from "../eth/swie";
 
 declare let window: any;
@@ -83,6 +84,7 @@ export default function Issue() {
     const [signedToken, setSignedToken] = useState<string>("");
     const [isWalletConnected, setIsWalletConnected] = useState(false);
     const [isSigned, setIsSigned] = useState(false);
+    const [ensProfile, setENSProfile] = useState<ENSProfile>(EMPTY_ENS_PROFILE);
 
     const [allowAllNetwork, setAllowAllNetwork] = useState(false);
     const [isUseOnlyOnce, setIsUseOnlyOnce] = useState(false);
@@ -110,6 +112,8 @@ export default function Issue() {
         );
         setSignedToken(JSON.stringify(msg));
         setIsSigned(true);
+        const ens = await getENSProfile(myAddress);
+        setENSProfile(ens);
     }
 
     return (
@@ -148,6 +152,9 @@ export default function Issue() {
                                     <div className="flex flex-col mb-4">
                                         <h6 className="font-bold mb-2 ">Account</h6>
                                         <span className="truncate">{myAddress}</span>
+                                        {ensProfile.name && (
+                                            <span className="truncate">{ensProfile.name}</span>
+                                        )}
                                     </div>
                                     <div className="flex flex-col mb-4">
                                         <h6 className="font-bold mb-2">Chain Id</h6>

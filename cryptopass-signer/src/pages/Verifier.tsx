@@ -6,11 +6,20 @@ const QrReader = require("react-qr-reader");
 
 const STORAGE_KEY = "authtoken";
 
+enum VerificationMode {
+    UNINITIALIZED = 0,
+    USER = 1,
+    NFT = 2,
+    TOKEN = 3,
+}
+
 export default function Verifier() {
     const [data, setData] = useState("");
     const [isImporting, setIsImporting] = useState(false);
     const [errMsg, setErrMsg] = useState("");
     const [parsedMsg, setParsedMsg] = useState<SiweMessage>();
+
+    const [verificationMode, setVerificationMode] = useState(VerificationMode.UNINITIALIZED);
 
     const handleScan = async (scanData: string) => {
         console.log(`loaded data `, scanData);
@@ -105,33 +114,65 @@ export default function Verifier() {
     return (
         <div className="bg-gradient-to-b from-pink-100 to-purple-200 h-screen">
             <div className="container m-auto px-6 py-20 md:px-12 lg:px-20">
-                {/* <div className="m-auto text-center lg:w-8/12 xl:w-7/12">
-                    <h2 className="text-2xl text-pink-900 font-bold md:text-4xl">
-                        A Tailus Blocks subscription gives you access to our components and more.
-                    </h2>
-                </div> */}
                 <div className="mt-12 m-auto -space-y-4 items-center justify-center md:flex md:space-y-0 md:-space-x-4 xl:w-10/12">
                     <div className="relative z-10 -mx-4 group md:w-6/12 md:mx-0 lg:w-5/12">
                         <div
                             aria-hidden="true"
                             className="absolute top-0 w-full h-full rounded-2xl bg-white shadow-xl"
                         />
-                        <div className="relative p-6 space-y-6 lg:p-8">
-                            <h3 className="text-3xl text-gray-700 font-semibold text-center">
-                                Verify NFT Ownership
-                            </h3>
-                            <div>
-                                <p className="text-gray-700 text-center">
-                                    Select a NFT to verify whether the user owns it
-                                </p>
+                        {verificationMode === VerificationMode.UNINITIALIZED && (
+                            <div className="relative">
+                                <div className="flex flex-col text-center">
+                                    <div className="my-8 h-1/3">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setVerificationMode(VerificationMode.USER)
+                                            }
+                                        >
+                                            <span className="text-5xl">Verify User</span>
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setVerificationMode(VerificationMode.NFT)
+                                            }
+                                        >
+                                            <span className="text-5xl">{`Verify User's NFT`}</span>
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setVerificationMode(VerificationMode.TOKEN)
+                                            }
+                                        >
+                                            <span className="text-5xl">{`Verify User's Token`}</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="relative">
-                            <div className="flex">
-                                {renderCard()}
-                                {renderCard()}
-                            </div>
-                        </div>
+                        )}
+                        {verificationMode === VerificationMode.NFT && (
+                            <>
+                                <div className="relative p-6 space-y-6 lg:p-8">
+                                    <h3 className="text-3xl text-gray-700 font-semibold text-center">
+                                        Verify NFT Ownership
+                                    </h3>
+                                    <div>
+                                        <p className="text-gray-700 text-center">
+                                            Select a NFT to verify whether the user owns it
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="relative">
+                                    <div className="flex">{renderCard()}</div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
