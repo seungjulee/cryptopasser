@@ -4,7 +4,7 @@
 ![alt text](./screenshots/saved.png "saved")
 ![alt text](./screenshots/diagram.png "diagram")
 
-Cryptopasser is a mobile friendly web app to **issue, sign, store and verify** [EIP-4361 Sign-In with Ethereum](https://eips.ethereum.org/EIPS/eip-4361) authentication token. 
+Cryptopasser is a mobile friendly web app to **issue, sign, store and verify** [EIP-4361 Sign-In with Ethereum](https://eips.ethereum.org/EIPS/eip-4361) authentication certificate token.
 
 Cryptopasser works similar to JWT web token. However, for signing and verifying, it uses Ethereum's [EIP-191](https://eips.ethereum.org/EIPS/eip-191), and for data communication, it uses an offline QR code.
 
@@ -35,6 +35,7 @@ Fully working demo on [https://cryptopasser.netlify.app](https://cryptopasser.ne
 - [ ] Grant access to a certain NFT or token only not all NFT/token owned by the user
 - [ ] Invalidate the token to prevent replay attacks (requires database to keep track of nonce)
 - [ ] Implement own indexer API to check the NFT ownership instead of calling Opensea API 
+- [ ] Save more than one auth token certificate
 
 ## Run locally
 `npm start`
