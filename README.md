@@ -27,6 +27,7 @@ Fully working demo on [https://cryptopasser.netlify.app](https://cryptopasser.ne
 - User can specify the specific chain id to make sure the token is only valid for a certain network.
 - [CSRF protection](https://en.wikipedia.org/wiki/Cross-site_request_forgery). The auth token is only valid on the same domain as the issuing domain.
 - It run offline. Internet is used only for fetching the NFT ownership  
+- Prevent [replay attacks](https://en.wikipedia.org/wiki/Replay_attack). It can consider a token invalidated after the initial verification.
 
 ## Features to implement
 
