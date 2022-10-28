@@ -4,8 +4,6 @@ import NFTCard, { NewNFTCard } from "../components/NFTCard";
 // eslint-disable-next-line
 const QrReader = require("react-qr-reader");
 
-const STORAGE_KEY = "authtoken";
-
 export enum VerificationMode {
     UNINITIALIZED = 0,
     USER = 1,
@@ -32,21 +30,16 @@ export default function Verifier(props: VerifierProps) {
                         {mode === VerificationMode.UNINITIALIZED && (
                             <div className="relative">
                                 <div className="flex flex-col text-center">
-                                    <div className="my-8 h-1/3">
-                                        <Link to="/verify/user">
+                                    <Link to="/verify/user">
+                                        <div className="py-8 h-1/3 border-4 rounded-2xl hover:bg-pink-100 border-pink-300">
                                             <span className="text-5xl">Verify User</span>
-                                        </Link>
-                                    </div>
-                                    <div>
-                                        <Link to="/verify/nft">
+                                        </div>
+                                    </Link>
+                                    <Link to="/verify/nft">
+                                        <div className="py-8 h-1/3 border-4 rounded-2xl hover:bg-pink-100 border-pink-300">
                                             <span className="text-5xl">{`Verify User's NFT`}</span>
-                                        </Link>
-                                    </div>
-                                    <div>
-                                        <Link to=".verify/token">
-                                            <span className="text-5xl">{`Verify User's Token`}</span>
-                                        </Link>
-                                    </div>
+                                        </div>
+                                    </Link>
                                 </div>
                             </div>
                         )}

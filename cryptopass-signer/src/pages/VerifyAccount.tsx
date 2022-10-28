@@ -146,15 +146,15 @@ export default function VerifyAccount(props: VerifyAccountProps) {
                                     <div className="flex mb-4" />
                                     <div>
                                         <div>
-                                            {(!errMsg && mode !== VerificationMode.NFT) ||
-                                                (mode === VerificationMode.NFT && userHasNFT && (
-                                                    <div className="flex flex-col text-center space-y-2 justify-center">
-                                                        <p className=" mr-2 text-9xl">✅</p>
-                                                        <span className="text-6xl font-bold subpixel-antialiased pb-4">
-                                                            VALID
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                            {((!errMsg && mode !== VerificationMode.NFT) ||
+                                                (mode === VerificationMode.NFT && userHasNFT)) && (
+                                                <div className="flex flex-col text-center space-y-2 justify-center">
+                                                    <p className=" mr-2 text-9xl">✅</p>
+                                                    <span className="text-6xl font-bold subpixel-antialiased pb-4">
+                                                        VALID
+                                                    </span>
+                                                </div>
+                                            )}
                                             {(errMsg && mode !== VerificationMode.NFT) ||
                                                 (mode === VerificationMode.NFT &&
                                                     !isCheckingNFT &&

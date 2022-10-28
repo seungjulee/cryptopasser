@@ -67,7 +67,7 @@ export function UserNFTCard(props: NFTUserMetadata) {
             <a
                 target="_blank"
                 href={openseaLink}
-                className="card bg-white h-[16rem] w-full rounded-xl p-6 space-y-4 border border-pink-300 hover:bg-pink-100"
+                className="card bg-white h-[16rem] w-full rounded-2xl p-6 space-y-4 border border-pink-300 hover:bg-pink-100"
             >
                 <div className="flex justify-center">
                     <img
@@ -77,11 +77,15 @@ export function UserNFTCard(props: NFTUserMetadata) {
                     />
                 </div>
                 <div className="space-y-1">
-                    <h2 className="font-semibold text-xl transition hover:text-cyan-300">
-                        {`${name} (${symbol})`}
-                    </h2>
-                    <p className="text-slate-500 text-sm select-none truncate">#{tokenID}</p>
-                    <p className="text-slate-500 text-sm select-none truncate">{description}</p>
+                    <div>
+                        <h2 className="font-semibold text-xl transition hover:text-cyan-300">
+                            {`${name} (${symbol})`}
+                        </h2>
+                    </div>
+                    <div>
+                        <p className="text-slate-500 text-sm select-none truncate">#{tokenID}</p>
+                        <p className="text-slate-500 text-sm select-none truncate">{description}</p>
+                    </div>
                 </div>
             </a>
         </div>

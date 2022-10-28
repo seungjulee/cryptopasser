@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import DelegatedClient from "./pages/DelegatedClient";
+import Home from "./pages/Home";
 import Issue from "./pages/Issue";
 import Verifier, { VerificationMode } from "./pages/Verifier";
 import VerifyAccount from "./pages/VerifyAccount";
@@ -11,7 +12,7 @@ import VerifyAccount from "./pages/VerifyAccount";
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Issue />,
+        element: <Home />,
     },
     {
         path: "issue",
