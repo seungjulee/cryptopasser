@@ -40,7 +40,7 @@ export async function signInWithEthereum(chainId?: number, expirationDuration?: 
   const signer = provider.getSigner();
   const msg = createSiweMessage(
       await signer.getAddress(),
-      'Sign in with Ethereum to the app.',
+      'Sign in with Ethereum to Cryptopasser.',
       chainId,
       expirationDuration,
   );
@@ -56,9 +56,7 @@ export async function signInWithEthereum(chainId?: number, expirationDuration?: 
 
 export async function verify(signedMsgString: string): Promise<SiweMessage> {
   const signedMsg = JSON.parse(signedMsgString);
-  console.log(signedMsg.msg)
   const message = new SiweMessage(signedMsg.msg);
   const fields = await message.validate(signedMsg.sig);
-  console.log(fields);
   return fields;
 }

@@ -1,35 +1,56 @@
-import localforage from "localforage";
-import { QRCodeSVG } from "qrcode.react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import { ErrorTypes, SiweMessage } from "siwe";
-import Button from "../components/Button";
+import { UserNFTCard } from "../components/NFTCard";
 import { EMPTY_ENS_PROFILE, ENSProfile, getENSProfile } from "../eth/ens";
-// import { getNFTsOfUser } from "../eth/opensea";
+import { checkNFTsOfUser, NFTUserMetadata } from "../eth/opensea";
 import { verify } from "../eth/swie";
+import { VerificationMode } from "./Verifier";
 // eslint-disable-next-line
 const QrReader = require("react-qr-reader");
 
-const STORAGE_KEY = "authtoken";
+interface VerifyAccountProps {
+    mode: VerificationMode;
+}
 
-export default function DelegatedClient() {
+export default function VerifyAccount(props: VerifyAccountProps) {
+    const { mode } = props;
+    const { contractAddress } = useParams();
+
     const [data, setData] = useState("");
-    const [isImporting, setIsImporting] = useState(false);
     const [errMsg, setErrMsg] = useState("");
     const [parsedMsg, setParsedMsg] = useState<SiweMessage>();
     const [ensProfile, setENSProfile] = useState<ENSProfile>(EMPTY_ENS_PROFILE);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isCheckingNFT, setIsCheckingNFT] = useState(false);
+    const [hasCheckedNFT, setHasCheckedNFT] = useState(false);
+    const [nftMetadata, setNFTMetadata] = useState<NFTUserMetadata>();
+
+    if (
+        mode === VerificationMode.NFT &&
+        parsedMsg &&
+        parsedMsg.address &&
+        contractAddress &&
+        !hasCheckedNFT
+    ) {
+        setIsCheckingNFT(true);
+        try {
+            checkNFTsOfUser(parsedMsg.address, contractAddress).then((meta) => {
+                if (meta) {
+                    setNFTMetadata(meta);
+                    console.log(meta);
+                }
+            });
+        } catch (e) {
+            setErrMsg(String(e));
+        }
+        setIsCheckingNFT(false);
+        setHasCheckedNFT(true);
+    }
 
     const handleScan = async (scanData: string) => {
-        console.log(`loaded data data`, scanData);
         if (!scanData || scanData === "") return;
         setData(scanData);
         parseData(scanData);
-
-        try {
-            await localforage.setItem(STORAGE_KEY, scanData);
-        } catch (e: any) {
-            setErrMsg("failed to save the item");
-        }
     };
 
     const parseData = async (scanData: string) => {
@@ -59,40 +80,9 @@ export default function DelegatedClient() {
     };
 
     const handleError = (err: Error) => {
+        // window.alert(err);
         setErrMsg(err.message);
     };
-
-    const onImporting = () => {
-        // verify(exampleSig);
-        setIsImporting(true);
-    };
-
-    const onRemoveQRCode = () => {
-        localforage
-            .removeItem(STORAGE_KEY)
-            .then(() => {
-                setData("");
-                setParsedMsg(undefined);
-                setIsImporting(false);
-            })
-            .catch((e) => setErrMsg(e.message));
-    };
-
-    useEffect(() => {
-        if (data || parsedMsg) {
-            setIsLoading(false);
-            return;
-        }
-
-        localforage
-            .getItem(STORAGE_KEY)
-            .then((d) => {
-                setData(d as string);
-                parseData(d as string);
-                setIsLoading(false);
-            })
-            .catch((e) => setErrMsg(e.message));
-    });
 
     return (
         <div className="bg-gradient-to-b from-pink-100 to-purple-200 h-screen">
@@ -105,7 +95,7 @@ export default function DelegatedClient() {
                         />
                         <div className="relative p-6 space-y-6 lg:p-8">
                             <h3 className="text-3xl text-gray-700 font-semibold text-center">
-                                View{" "}
+                                Verify{" "}
                                 <a
                                     rel="noopener"
                                     target="_blank"
@@ -116,23 +106,7 @@ export default function DelegatedClient() {
                                 </a>{" "}
                                 Authentication Token
                             </h3>
-                            {!isImporting && !data && !isLoading && (
-                                <>
-                                    <div className="flex space-x-2">
-                                        <p className="flex items-center align-middle mr-2 text-3xl">
-                                            😢
-                                        </p>
-                                        <span>
-                                            There is no saved auth token. Please import it by
-                                            scanning the qr code from{" "}
-                                            <span className="font-bold">{`${window.location.origin}/issue`}</span>
-                                            .
-                                        </span>
-                                    </div>
-                                    <Button onClick={onImporting} label="Import" />
-                                </>
-                            )}
-                            {isImporting && !data && (
+                            {!data && (
                                 <div>
                                     <QrReader
                                         facingMode="environment"
@@ -142,20 +116,31 @@ export default function DelegatedClient() {
                                     />
                                 </div>
                             )}
-                            {isImporting && errMsg && <p className="text-red-600">{errMsg}</p>}
+                            {errMsg && <p className="text-red-600 font-bold">{errMsg}</p>}
                             {data && parsedMsg && (
                                 <div>
-                                    <QRCodeSVG
-                                        value={data}
-                                        style={{ height: "256px" }}
-                                        className="w-full my-4"
-                                    />
-                                    <div className="w-full flex justify-center mb-4">
-                                        <div className="w-1/2">
-                                            <Button isRed label="Remove" onClick={onRemoveQRCode} />
-                                        </div>
-                                    </div>
+                                    <div className="flex mb-4" />
                                     <div>
+                                        {mode === VerificationMode.NFT && (
+                                            <div className="flex flex-col mb-4">
+                                                {isCheckingNFT && (
+                                                    <span>Checking the NFT ownership...</span>
+                                                )}
+                                                {hasCheckedNFT &&
+                                                    !nftMetadata &&
+                                                    "User does not own this NFT"}
+                                                {hasCheckedNFT && nftMetadata && (
+                                                    <UserNFTCard
+                                                        openseaLink={nftMetadata.openseaLink}
+                                                        imageURL={nftMetadata.imageURL}
+                                                        name={nftMetadata.name}
+                                                        symbol={nftMetadata.symbol}
+                                                        description={nftMetadata.description}
+                                                        tokenID={nftMetadata.tokenID}
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
                                         <div className="flex flex-col mb-4">
                                             <h6 className="font-bold mb-2 ">Account</h6>
                                             <span className="truncate">{parsedMsg.address}</span>

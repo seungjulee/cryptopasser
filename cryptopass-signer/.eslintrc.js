@@ -1,6 +1,6 @@
 module.exports = {
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "prettier"],
+  plugins: ["@typescript-eslint", "prettier", "react-hooks"],
   extends: [
     "airbnb", // or airbnb-base
     "plugin:react/recommended",
@@ -30,7 +30,9 @@ module.exports = {
     "react/jsx-no-bind": [1, {
       "allowFunctions": true,
     }],
-    "react/jsx-no-target-blank": 0
+    "react/jsx-no-target-blank": 0,
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   },
   settings: {
     "import/resolver": {
