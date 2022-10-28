@@ -1,3 +1,4 @@
+import moment from "moment";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { ErrorTypes, SiweMessage } from "siwe";
@@ -24,27 +25,31 @@ export default function VerifyAccount(props: VerifyAccountProps) {
     const [isCheckingNFT, setIsCheckingNFT] = useState(false);
     const [hasCheckedNFT, setHasCheckedNFT] = useState(false);
     const [nftMetadata, setNFTMetadata] = useState<NFTUserMetadata>();
+    const [isInvalidSig, setIsInvalidSig] = useState(false);
+    const [isExpiredSig, setIsExpiredSig] = useState(false);
 
     if (
         mode === VerificationMode.NFT &&
         parsedMsg &&
         parsedMsg.address &&
         contractAddress &&
+        !isCheckingNFT &&
         !hasCheckedNFT
     ) {
         setIsCheckingNFT(true);
-        try {
-            checkNFTsOfUser(parsedMsg.address, contractAddress).then((meta) => {
+        checkNFTsOfUser(parsedMsg.address, contractAddress)
+            .then((meta) => {
                 if (meta) {
                     setNFTMetadata(meta);
-                    console.log(meta);
                 }
+                setHasCheckedNFT(true);
+                setIsCheckingNFT(false);
+            })
+            .catch((e) => {
+                setErrMsg(String(e));
+                setHasCheckedNFT(true);
+                setIsCheckingNFT(false);
             });
-        } catch (e) {
-            setErrMsg(String(e));
-        }
-        setIsCheckingNFT(false);
-        setHasCheckedNFT(true);
     }
 
     const handleScan = async (scanData: string) => {
@@ -61,14 +66,17 @@ export default function VerifyAccount(props: VerifyAccountProps) {
             // getNFTsOfUser(parsed.address);
             const ens = await getENSProfile(parsed.address);
             setENSProfile(ens);
+            setErrMsg("");
         } catch (e: any) {
             switch (e) {
                 case ErrorTypes.EXPIRED_MESSAGE: {
                     setErrMsg(e.message);
+                    setIsExpiredSig(true);
                     break;
                 }
                 case ErrorTypes.INVALID_SIGNATURE: {
                     setErrMsg(e.message);
+                    setIsInvalidSig(true);
                     break;
                 }
                 default: {
@@ -83,6 +91,22 @@ export default function VerifyAccount(props: VerifyAccountProps) {
         // window.alert(err);
         setErrMsg(err.message);
     };
+
+    const userHasNFT = !isCheckingNFT && hasCheckedNFT && nftMetadata;
+    const renderNFTReason = () => {
+        if (isCheckingNFT) {
+            return <li>⏳ Checking the NFT ownership of the account</li>;
+        }
+        if (userHasNFT) {
+            return <li>✅ User owns this NFT</li>;
+        }
+
+        return <li>❌ User does not own this NFT</li>;
+    };
+
+    const isAccessingFromSameDomain = window.location.host === parsedMsg?.domain;
+
+    console.log(errMsg, isCheckingNFT, hasCheckedNFT);
 
     return (
         <div className="bg-gradient-to-b from-pink-100 to-purple-200 h-screen">
@@ -114,34 +138,93 @@ export default function VerifyAccount(props: VerifyAccountProps) {
                                         onError={handleError}
                                         onScan={handleScan}
                                     />
+                                    {errMsg && <p className="text-red-600 font-bold">{errMsg}</p>}
                                 </div>
                             )}
-                            {errMsg && <p className="text-red-600 font-bold">{errMsg}</p>}
                             {data && parsedMsg && (
                                 <div>
                                     <div className="flex mb-4" />
                                     <div>
-                                        {mode === VerificationMode.NFT && (
-                                            <div className="flex flex-col mb-4">
-                                                {isCheckingNFT && (
-                                                    <span>Checking the NFT ownership...</span>
+                                        <div>
+                                            {(!errMsg && mode !== VerificationMode.NFT) ||
+                                                (mode === VerificationMode.NFT && userHasNFT && (
+                                                    <div className="flex flex-col text-center space-y-2 justify-center">
+                                                        <p className=" mr-2 text-9xl">✅</p>
+                                                        <span className="text-6xl font-bold subpixel-antialiased pb-4">
+                                                            VALID
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            {(errMsg && mode !== VerificationMode.NFT) ||
+                                                (mode === VerificationMode.NFT &&
+                                                    !isCheckingNFT &&
+                                                    hasCheckedNFT &&
+                                                    (!userHasNFT || errMsg) && (
+                                                        <div className="flex flex-col text-center space-y-2 justify-center">
+                                                            <p className=" mr-2 text-9xl">❌</p>
+                                                            <span className="text-6xl font-bold subpixel-antialiased">
+                                                                INVALID
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                            <ul className="list-none m-4 space-y-1.5 font-medium">
+                                                {isInvalidSig ? (
+                                                    <li>
+                                                        ❌ Invalid signature. Not from the account
+                                                        owner
+                                                    </li>
+                                                ) : (
+                                                    <li>✅ Valid signature by the account owner</li>
                                                 )}
-                                                {hasCheckedNFT &&
-                                                    !nftMetadata &&
-                                                    "User does not own this NFT"}
-                                                {hasCheckedNFT && nftMetadata && (
-                                                    <UserNFTCard
-                                                        openseaLink={nftMetadata.openseaLink}
-                                                        imageURL={nftMetadata.imageURL}
-                                                        name={nftMetadata.name}
-                                                        symbol={nftMetadata.symbol}
-                                                        description={nftMetadata.description}
-                                                        tokenID={nftMetadata.tokenID}
-                                                    />
+                                                {isExpiredSig ? (
+                                                    <li>
+                                                        ❌ Expired{" "}
+                                                        {moment(parsedMsg.expirationTime).fromNow()}
+                                                    </li>
+                                                ) : (
+                                                    <li>
+                                                        ✅ Not expired. Expire{" "}
+                                                        {moment(parsedMsg.expirationTime).fromNow()}
+                                                    </li>
                                                 )}
-                                            </div>
+                                                {isAccessingFromSameDomain ? (
+                                                    <li>✅ Accessing from the same issuer host</li>
+                                                ) : (
+                                                    <li>
+                                                        ❌ Not accessing from the same issuer host
+                                                        {`. ${window.location.host} != ${parsedMsg.domain}`}
+                                                    </li>
+                                                )}
+                                                <li>✅ Valid nonce</li>
+                                                {mode === VerificationMode.NFT && renderNFTReason()}
+                                                {errMsg && (
+                                                    <li className="font-bold">❌ {errMsg}</li>
+                                                )}
+                                            </ul>
+                                        </div>
+                                        {mode === VerificationMode.NFT && userHasNFT && (
+                                            <>
+                                                <div className="relative flex py-5 items-center">
+                                                    <div className="flex-grow border-t border-gray-400" />
+                                                </div>
+                                                <div className="flex flex-col mb-4">
+                                                    {hasCheckedNFT && nftMetadata && (
+                                                        <UserNFTCard
+                                                            openseaLink={nftMetadata.openseaLink}
+                                                            imageURL={nftMetadata.imageURL}
+                                                            name={nftMetadata.name}
+                                                            symbol={nftMetadata.symbol}
+                                                            description={nftMetadata.description}
+                                                            tokenID={nftMetadata.tokenID}
+                                                        />
+                                                    )}
+                                                </div>
+                                            </>
                                         )}
-                                        <div className="flex flex-col mb-4">
+                                        <div className="relative flex py-2 items-center">
+                                            <div className="flex-grow border-t border-gray-400" />
+                                        </div>
+                                        <div className="flex flex-col mb-4 mt-2">
                                             <h6 className="font-bold mb-2 ">Account</h6>
                                             <span className="truncate">{parsedMsg.address}</span>
                                             {ensProfile.name && (

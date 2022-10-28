@@ -12,6 +12,7 @@
     "eth-chains": "^1.0.0",
     "ethers": "^5.7.2",
     "localforage": "^1.10.0",
+    "moment": "^2.29.4",
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.5.0",
